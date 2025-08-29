@@ -611,7 +611,7 @@ export default function DashboardPage() {
                             ? setEditingContact({...editingContact, name: e.target.value})
                             : setNewContact(prev => ({...prev, name: e.target.value}))
                           }
-                          placeholder="DR. JOHN SMITH"
+                          placeholder="DR. PRASHANT BHAT"
                           disabled={loading}
                         />
                       </div>

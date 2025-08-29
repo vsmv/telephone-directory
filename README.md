@@ -82,12 +82,8 @@ A comprehensive telephone directory application built for ACTREC (Advanced Centr
 - `bioinformatics_ideas`: Patentable ideas and learning plans
 
 ### Sample Data
-The schema includes sample contacts for testing:
+The schema includes a single sample contact for testing:
 - DR. PRASHANT BHAT (Medical Administration)
-- MRS. PRAGATI (Medical Administration) 
-- DR. RAJESH KUMAR (Oncology Research)
-- MS. PRIYA SHARMA (IT Department)
-- DR. ANITA DESAI (Bioinformatics)
 
 ## CSV Format
 

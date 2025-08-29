@@ -329,8 +329,7 @@ Each tab provides specific functionality:
 **Required CSV Format:**
 ```csv
 Name,Department,Designation,Phone Number,Extension,Email,Location,Institution
-DR. JOHN DOE,Oncology,Doctor,-7674,5045,john.doe@actrec.gov.in,Third Floor,ACTREC
-DR. JANE SMITH,Bioinformatics,Research Scientist,-7675,5046,jane.smith@actrec.gov.in,Fourth Floor,ACTREC
+DR. PRASHANT BHAT,Medical Administration,Doctor,-7671,5042,prashant.bhat@actrec.gov.in,Second Floor,ACTREC
 ```
 
 **📷 Screenshot Description:**
