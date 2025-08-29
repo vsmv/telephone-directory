@@ -1,0 +1,33 @@
+{
+  "name": "actrec-directory-staging",
+  "version": 2,
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "@supabase-staging-url",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-staging-anon-key",
+    "SUPABASE_SERVICE_ROLE_KEY": "@supabase-staging-service-role-key",
+    "NEXTAUTH_URL": "https://actrec-directory-staging.vercel.app",
+    "NEXTAUTH_SECRET": "@nextauth-staging-secret",
+    "NODE_ENV": "production",
+    "ENABLE_DEBUG_LOGS": "true",
+    "ENABLE_TEST_FEATURES": "true"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_SUPABASE_URL": "@supabase-staging-url",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-staging-anon-key",
+      "NODE_ENV": "production"
+    }
+  },
+  "functions": {
+    "app/api/**": {
+      "maxDuration": 30
+    }
+  },
+  "regions": ["iad1"],
+  "github": {
+    "enabled": true,
+    "autoDeployment": {
+      "branch": "develop"
+    }
+  }
+}
