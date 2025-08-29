@@ -53,9 +53,10 @@ CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- Insert single sample data for production readiness
+-- Insert single sample data for production readiness (safe insert)
 INSERT INTO contacts (name, department, designation, phone_number, extension, email, location, institution) VALUES
-('DR. PRASHANT BHAT', 'Medical Administration', 'Doctor', '-7671', '5042', 'prashant.bhat@actrec.gov.in', 'Second Floor', 'ACTREC');
+('DR. PRASHANT BHAT', 'Medical Administration', 'Doctor', '-7671', '5042', 'prashant.bhat@actrec.gov.in', 'Second Floor', 'ACTREC')
+ON CONFLICT (extension, email) DO NOTHING;
 
 -- Row Level Security (RLS) policies
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
