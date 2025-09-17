@@ -100,3 +100,81 @@ CREATE POLICY "Admins can delete contacts" ON contacts
         )
     );
 
+-- Create patentable_ideas table
+CREATE TABLE patentable_ideas (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    category TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create learning_plans table
+CREATE TABLE learning_plans (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    category TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- RLS for patentable_ideas
+ALTER TABLE patentable_ideas ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Authenticated users can view patentable_ideas" ON patentable_ideas
+    FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Admins can insert patentable_ideas" ON patentable_ideas
+    FOR INSERT TO authenticated
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM user_profiles
+            WHERE id = auth.uid() AND role = 'admin'
+        )
+    );
+CREATE POLICY "Admins can update patentable_ideas" ON patentable_ideas
+    FOR UPDATE TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM user_profiles
+            WHERE id = auth.uid() AND role = 'admin'
+        )
+    );
+CREATE POLICY "Admins can delete patentable_ideas" ON patentable_ideas
+    FOR DELETE TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM user_profiles
+            WHERE id = auth.uid() AND role = 'admin'
+        )
+    );
+
+-- RLS for learning_plans
+ALTER TABLE learning_plans ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Authenticated users can view learning_plans" ON learning_plans
+    FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Admins can insert learning_plans" ON learning_plans
+    FOR INSERT TO authenticated
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM user_profiles
+            WHERE id = auth.uid() AND role = 'admin'
+        )
+    );
+CREATE POLICY "Admins can update learning_plans" ON learning_plans
+    FOR UPDATE TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM user_profiles
+            WHERE id = auth.uid() AND role = 'admin'
+        )
+    );
+CREATE POLICY "Admins can delete learning_plans" ON learning_plans
+    FOR DELETE TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM user_profiles
+            WHERE id = auth.uid() AND role = 'admin'
+        )
+    );
+

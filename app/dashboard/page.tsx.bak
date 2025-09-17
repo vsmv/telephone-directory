@@ -8,28 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { contactService, csvService, type Contact, type ContactInsert } from "@/lib/database";
 
-// Local types for dashboard functionality
-interface PatentableIdea {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  dateAdded: string;
-}
-
-interface LearningPlan {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  dateAdded: string;
-}
+// Dashboard imports and types
 import { UserManagement } from "@/components/user-management";
 import { RoleManagement } from "@/components/role-management";
+import { PatentableIdeas } from "@/components/patentable-ideas";
+import { LearningPlans } from "@/components/learning-plans";
 import { useAuth, authService } from "@/lib/auth";
 import { 
   Plus, Edit, Trash2, Upload, Download, Search, Settings, 
@@ -71,26 +57,7 @@ export default function DashboardPage() {
     total: number;
     stage: string;
   } | null>(null);
-  const [patentableIdeas, setPatentableIdeas] = useState<PatentableIdea[]>([]);
-  const [learningPlans, setLearningPlans] = useState<LearningPlan[]>([]);
-  const [newIdea, setNewIdea] = useState<{
-    title: string;
-    description: string;
-    category: string;
-  }>({
-    title: "",
-    description: "",
-    category: ""
-  });
-  const [newLearningPlan, setNewLearningPlan] = useState<{
-    title: string;
-    description: string;
-    category: string;
-  }>({
-    title: "",
-    description: "",
-    category: ""
-  });
+  // State for patentable ideas and learning plans is managed in their respective components
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -1203,82 +1170,15 @@ export default function DashboardPage() {
           {/* Learning Plans Tab */}
           {hasPermission('canViewStudyPlans') && (
             <TabsContent value="learning">
-            <div className="grid gap-6 lg:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BookOpen className="w-5 h-5" />
-                    Add Learning Plan
-                  </CardTitle>
-                  <CardDescription>
-                    Create research collaboration guides
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="planTitle">Plan Title</Label>
-                    <Input
-                      id="planTitle"
-                      value={newLearningPlan.title}
-                      onChange={(e) => setNewLearningPlan(prev => ({...prev, title: e.target.value}))}
-                      placeholder="Oncology Expert Collaboration Guide"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="planCategory">Category</Label>
-                    <Input
-                      id="planCategory"
-                      value={newLearningPlan.category}
-                      onChange={(e) => setNewLearningPlan(prev => ({...prev, category: e.target.value}))}
-                      placeholder="Research Collaboration"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="planDescription">Step-by-Step Guide</Label>
-                    <Textarea
-                      id="planDescription"
-                      value={newLearningPlan.description}
-                      onChange={(e) => setNewLearningPlan(prev => ({...prev, description: e.target.value}))}
-                      placeholder="Step 1: Search 'Department: Medical Administration'&#10;Step 2: Filter results by specialty..."
-                      rows={6}
-                    />
-                  </div>
-                  <Button onClick={addLearningPlan} className="w-full">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Learning Plan
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Learning Plans ({learningPlans.length})</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {learningPlans.map((plan) => (
-                      <div key={plan.id} className="p-4 border rounded-lg">
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-medium">{plan.title}</h3>
-                          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                            {plan.category}
-                          </span>
-                        </div>
-                        <pre className="text-sm text-gray-600 mb-2 whitespace-pre-wrap">{plan.description}</pre>
-                        <p className="text-xs text-gray-500">Added: {plan.dateAdded}</p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+              {user && <LearningPlans userEmail={user.email} />}
+            </TabsContent>
           )}
 
           {/* User Management Tab - Admin Only */}
           {hasPermission('canViewUserManagement') && (
             <TabsContent value="user-management">
-              <div>
+              <div className="space-y-6">
+                <RoleSwitcher />
                 <UserManagement />
               </div>
             </TabsContent>

@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth";
 import { Lock, User, ArrowLeft } from "lucide-react";
 
 export default function LoginPage() {
@@ -17,33 +18,38 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate authentication logic
     try {
-      if (credentials.username === "admin" && credentials.password === "admin123") {
-        toast({
-          title: "Login Successful",
-          description: "Welcome, Administrator! Redirecting to dashboard..."
-        });
-        // Redirect to admin dashboard
-        router.push("/dashboard");
-      } else if (credentials.username === "user" && credentials.password === "user123") {
-        toast({
-          title: "Login Successful", 
-          description: "Welcome! Redirecting to search interface..."
-        });
-        // Redirect to search interface
-        router.push("/search");
-      } else {
+      // Convert username to email format for auth service
+      const email = credentials.username === "admin" 
+        ? "admin@actrec.gov.in" 
+        : "user@actrec.gov.in";
+      
+      const { user, error } = await login(email, credentials.password);
+      
+      if (error) {
         toast({
           title: "Login Failed",
-          description: "Invalid username or password. Please try again.",
+          description: error,
           variant: "destructive"
         });
+      } else if (user) {
+        toast({
+          title: "Login Successful",
+          description: `Welcome, ${user.role === 'admin' ? 'Administrator' : 'User'}!`
+        });
+        
+        // Redirect based on role
+        if (user.role === 'admin') {
+          router.push("/dashboard");
+        } else {
+          router.push("/search");
+        }
       }
     } catch (error) {
       toast({

@@ -22,6 +22,30 @@ export type Database = {
           created_at: string;
           updated_at: string;
         };
+      };
+      patentable_ideas: {
+        Row: {
+          id: string;
+          email: string;
+          title: string;
+          description: string;
+          category: string;
+          date_added: string;
+          last_modified: string;
+        };
+      };
+      learning_plans: {
+        Row: {
+          id: string;
+          email: string;
+          title: string;
+          description: string;
+          category: string;
+          status: string;
+          target_completion_date: string;
+          date_added: string;
+          last_modified: string;
+        };
         Insert: {
           id?: string;
           name: string;

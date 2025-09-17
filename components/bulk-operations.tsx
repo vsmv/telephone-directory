@@ -58,57 +58,29 @@ export default function BulkOperations() {
             return;
           }
 
-          let successCount = 0;
-          const duplicates: string[] = [];
-          const errors: string[] = [];
+          const response = await fetch('/api/bulk-upload', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(contacts),
+          });
 
-          for (const contact of contacts) {
-            try {
-              // Check for duplicates
-              const { data: existing } = await supabase
-                .from("contacts")
-                .select("id, name, extension")
-                .or(`extension.eq.${contact.Extension},email.eq.${contact.Email}`);
+          const data = await response.json();
 
-              if (existing && existing.length > 0) {
-                duplicates.push(`Extension ${contact.Extension}: ${contact.Name}`);
-                continue;
-              }
-
-              // Insert contact
-              const { error } = await supabase
-                .from("contacts")
-                .insert([{
-                  name: contact.Name,
-                  department: contact.Department,
-                  designation: contact.Designation,
-                  phone_number: contact['Phone Number'],
-                  extension: contact.Extension,
-                  email: contact.Email,
-                  location: contact.Location,
-                  institution: contact.Institution,
-                }]);
-
-              if (error) {
-                errors.push(`${contact.Name}: ${error.message}`);
-              } else {
-                successCount++;
-              }
-            } catch (err: any) {
-              errors.push(`${contact.Name}: ${err.message}`);
-            }
+          if (response.ok) {
+            setUploadResults(data);
+            toast({
+              title: "Upload Complete",
+              description: `${data.success} contacts added successfully`,
+            });
+          } else {
+            toast({
+              title: "Upload Error",
+              description: data.error || "An unknown error occurred",
+              variant: "destructive",
+            });
           }
-
-          setUploadResults({
-            success: successCount,
-            duplicates,
-            errors,
-          });
-
-          toast({
-            title: "Upload Complete",
-            description: `${successCount} contacts added successfully`,
-          });
 
         } catch (error: any) {
           toast({
