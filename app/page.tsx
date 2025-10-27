@@ -43,22 +43,20 @@ export default function HomePage() {
             </Card>
           </Link>
 
-
-
-          <Link href="/dashboard" className="group">
+          <Link href="/search" className="group">
             <Card className="h-full bg-white/95 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
               <CardHeader className="text-center pb-4">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-200 transition-colors">
-                  <Settings className="w-8 h-8 text-purple-600" />
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-green-200 transition-colors">
+                  <Search className="w-8 h-8 text-green-600" />
                 </div>
-                <CardTitle className="text-xl text-gray-900">Admin Dashboard</CardTitle>
+                <CardTitle className="text-xl text-gray-900">Search Directory</CardTitle>
                 <CardDescription className="text-gray-600">
-                  Manage Contacts & Data
+                  Search All Contacts
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center">
-                <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                  Open Dashboard
+                <Button className="w-full bg-green-600 hover:bg-green-700">
+                  Start Searching
                 </Button>
               </CardContent>
             </Card>
