@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { patentableIdeaService, userService, type PatentableIdea, type UserProfile } from '@/lib/database';
+import { userService, type UserProfile } from '@/lib/database';
+import { patentableIdeasService, type PatentableIdea, type PatentableIdeaInsert } from '@/lib/ideas-and-plans';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth';
 import { Plus, Edit, Trash2, Loader2 } from 'lucide-react';
@@ -22,18 +23,11 @@ export default function SimplePatentableIdeas() {
   const [selectedUser, setSelectedUser] = useState<string>("__all__");
   const [loading, setLoading] = useState(true);
   const [editingIdea, setEditingIdea] = useState<PatentableIdea | null>(null);
-  const [newIdea, setNewIdea] = useState<{
-    email: string;
-    title: string;
-    description: string;
-    category: string;
-    status: 'draft' | 'submitted' | 'approved' | 'rejected';
-  }>({
+  const [newIdea, setNewIdea] = useState<PatentableIdeaInsert>({
     email: user?.email || '',
     title: '',
     description: '',
-    category: '',
-    status: 'draft'
+    category: ''
   });
 
   // Update email when user changes
@@ -77,36 +71,28 @@ export default function SimplePatentableIdeas() {
     setLoading(true);
     
     try {
-      // Use the database service which uses the admin client
       let data, error;
       
       if (isAdmin) {
         // Admin can see all ideas or filtered by selected user
         console.log('👑 SimplePatentableIdeas: Admin user, fetching ideas');
-        const result = await patentableIdeaService.getIdeas();
+        const result = await patentableIdeasService.getIdeasByEmail(user.email);
         data = result.data;
         error = result.error;
         console.log('👑 Admin ideas result:', { data, error, count: data?.length });
         
         // Filter by selected user if one is chosen (and not "All Users")
         if (data && selectedUser && selectedUser !== "__all__") {
-          data = data.filter(idea => idea.email === selectedUser);
+          data = data.filter((idea: PatentableIdea) => idea.email === selectedUser);
         }
       } else {
         // Regular user can only see their own ideas
         console.log('👤 SimplePatentableIdeas: Regular user, fetching ideas for:', user.email);
-        // Use the database service method that fetches ideas for a specific email
-        // This uses the admin client which bypasses RLS
-        const result = await patentableIdeaService.getIdeas(); // Get all ideas
+        // Use the service that fetches ideas for a specific email
+        const result = await patentableIdeasService.getIdeasByEmail(user.email);
         data = result.data;
         error = result.error;
-        console.log('👤 All ideas result:', { data, error, count: data?.length });
-        
-        // Filter ideas by current user's email for regular users
-        if (data) {
-          data = data.filter(idea => idea.email === user.email);
-        }
-        console.log('👤 Filtered ideas for user:', { count: data?.length });
+        console.log('👤 User ideas result:', { data, error, count: data?.length });
       }
       
       console.log('💡 SimplePatentableIdeas: Service result:', { data, error, count: data?.length });
@@ -177,7 +163,7 @@ export default function SimplePatentableIdeas() {
     }
 
     setLoading(true);
-    const { data, error } = await patentableIdeaService.createIdea(newIdea);
+    const { data, error } = await patentableIdeasService.createIdea(newIdea);
     
     if (error) {
       toast({
@@ -191,8 +177,7 @@ export default function SimplePatentableIdeas() {
         email: user?.email || '',
         title: '',
         description: '',
-        category: '',
-        status: 'draft'
+        category: ''
       });
       toast({
         title: "Idea Added",
@@ -217,9 +202,8 @@ export default function SimplePatentableIdeas() {
     }
 
     setLoading(true);
-    const { data, error } = await patentableIdeaService.updateIdea(
-      editingIdea.email,
-      editingIdea.title,
+    const { data, error } = await patentableIdeasService.updateIdea(
+      editingIdea.id,
       editingIdea
     );
     
@@ -231,7 +215,7 @@ export default function SimplePatentableIdeas() {
       });
     } else if (data) {
       setIdeas(ideas.map(idea => 
-        idea.email === editingIdea.email && idea.title === editingIdea.title ? data : idea
+        idea.id === editingIdea.id ? data : idea
       ));
       setEditingIdea(null);
       toast({
@@ -244,9 +228,9 @@ export default function SimplePatentableIdeas() {
   };
 
   // Delete idea function
-  const deleteIdea = async (email: string, title: string) => {
+  const deleteIdea = async (id: string) => {
     setLoading(true);
-    const { error } = await patentableIdeaService.deleteIdea(email, title);
+    const { error } = await patentableIdeasService.deleteIdea(id);
     
     if (error) {
       toast({
@@ -255,10 +239,10 @@ export default function SimplePatentableIdeas() {
         variant: "destructive"
       });
     } else {
-      setIdeas(ideas.filter(idea => !(idea.email === email && idea.title === title)));
+      setIdeas(ideas.filter(idea => idea.id !== id));
       toast({
         title: "Idea Deleted",
-        description: `${title} has been deleted successfully`
+        description: `Idea has been deleted successfully`
       });
     }
     
@@ -303,7 +287,7 @@ export default function SimplePatentableIdeas() {
               <Label htmlFor="description">Description *</Label>
               <Input
                 id="description"
-                value={editingIdea?.description || newIdea.description}
+                value={editingIdea?.description || newIdea.description || ''}
                 onChange={(e) => editingIdea
                   ? setEditingIdea({...editingIdea, description: e.target.value})
                   : setNewIdea(prev => ({...prev, description: e.target.value}))
@@ -318,7 +302,7 @@ export default function SimplePatentableIdeas() {
                 <Label htmlFor="category">Category *</Label>
                 <Input
                   id="category"
-                  value={editingIdea?.category || newIdea.category}
+                  value={editingIdea?.category || newIdea.category || ''}
                   onChange={(e) => editingIdea
                     ? setEditingIdea({...editingIdea, category: e.target.value})
                     : setNewIdea(prev => ({...prev, category: e.target.value}))
@@ -326,26 +310,6 @@ export default function SimplePatentableIdeas() {
                   placeholder="Technology"
                   disabled={loading}
                 />
-              </div>
-              <div>
-                <Label htmlFor="status">Status</Label>
-                <select
-                  id="status"
-                  value={editingIdea?.status || newIdea.status}
-                  onChange={(e) => {
-                    const status = e.target.value as 'draft' | 'submitted' | 'approved' | 'rejected';
-                    editingIdea
-                      ? setEditingIdea({...editingIdea, status})
-                      : setNewIdea(prev => ({...prev, status}));
-                  }}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                  disabled={loading}
-                >
-                  <option value="draft">Draft</option>
-                  <option value="submitted">Submitted</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
-                </select>
               </div>
             </div>
 
@@ -406,7 +370,7 @@ export default function SimplePatentableIdeas() {
           ) : (
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {ideas.map((idea) => (
-                <div key={`${idea.email}-${idea.title}`} className="border rounded-lg p-4">
+                <div key={idea.id} className="border rounded-lg p-4">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
@@ -420,8 +384,7 @@ export default function SimplePatentableIdeas() {
                       <p className="text-sm text-gray-600 mt-1">{idea.description}</p>
                       <div className="flex gap-4 mt-2 text-xs text-gray-500">
                         <span>Category: {idea.category}</span>
-                        <span>Status: {idea.status}</span>
-                        <span>Created: {new Date(idea.created_at).toLocaleDateString()}</span>
+                        <span>Created: {new Date(idea.date_added).toLocaleDateString()}</span>
                       </div>
                     </div>
                     <div className="flex gap-1 ml-4">
@@ -436,7 +399,7 @@ export default function SimplePatentableIdeas() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => deleteIdea(idea.email, idea.title)}
+                        onClick={() => deleteIdea(idea.id)}
                         disabled={loading}
                       >
                         <Trash2 className="w-4 h-4" />

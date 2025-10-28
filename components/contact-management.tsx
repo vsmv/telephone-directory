@@ -200,6 +200,8 @@ export default function ContactManagement() {
     setLoading(false);
   };
 
+  // Bulk upload functionality has been moved to the bulk operations component
+
   return (
     <div className="space-y-6">
       {/* Selection Controls */}
@@ -268,7 +270,7 @@ export default function ContactManagement() {
             <div className="text-center py-8 text-gray-500">
               <Users className="mx-auto h-12 w-12 text-gray-400" />
               <p className="mt-2">No contacts found</p>
-              <p className="text-sm">Add contacts using the "Add Contact" tab</p>
+              <p className="text-sm">Add contacts using the &quot;Add Contact&quot; tab</p>
             </div>
           ) : (
             <div className="overflow-x-auto">

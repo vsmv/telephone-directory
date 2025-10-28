@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { learningPlanService, userService, type LearningPlan, type UserProfile } from '@/lib/database';
+import { userService, type UserProfile } from '@/lib/database';
+import { learningPlansService, type LearningPlan, type LearningPlanInsert } from '@/lib/ideas-and-plans';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth';
 import { Plus, Edit, Trash2, Loader2 } from 'lucide-react';
@@ -23,20 +24,13 @@ export default function SimpleLearningPlans() {
   const [selectedUser, setSelectedUser] = useState<string>("__all__");
   const [loading, setLoading] = useState(true);
   const [editingPlan, setEditingPlan] = useState<LearningPlan | null>(null);
-  const [newPlan, setNewPlan] = useState<{
-    email: string;
-    title: string;
-    description: string;
-    category: string;
-    status: 'not-started' | 'in-progress' | 'completed' | 'archived';
-    target_completion_date?: string | null;
-  }>({
+  const [newPlan, setNewPlan] = useState<LearningPlanInsert>({
     email: user?.email || '',
     title: '',
     description: '',
     category: '',
-    status: 'not-started',
-    target_completion_date: null
+    status: 'In Progress',
+    target_completion_date: undefined
   });
 
   // Update email when user changes
@@ -80,36 +74,28 @@ export default function SimpleLearningPlans() {
     setLoading(true);
     
     try {
-      // Use the database service which uses the admin client
       let data, error;
       
       if (isAdmin) {
         // Admin can see all plans or filtered by selected user
         console.log('👑 SimpleLearningPlans: Admin user, fetching plans');
-        const result = await learningPlanService.getPlans();
+        const result = await learningPlansService.getPlansByEmail(user.email);
         data = result.data;
         error = result.error;
         console.log('👑 Admin plans result:', { data, error, count: data?.length });
         
         // Filter by selected user if one is chosen (and not "All Users")
         if (data && selectedUser && selectedUser !== "__all__") {
-          data = data.filter(plan => plan.email === selectedUser);
+          data = data.filter((plan: LearningPlan) => plan.email === selectedUser);
         }
       } else {
         // Regular user can only see their own plans
         console.log('👤 SimpleLearningPlans: Regular user, fetching plans for:', user.email);
-        // Use the database service method that fetches plans for a specific email
-        // This uses the admin client which bypasses RLS
-        const result = await learningPlanService.getPlans(); // Get all plans
+        // Use the service that fetches plans for a specific email
+        const result = await learningPlansService.getPlansByEmail(user.email);
         data = result.data;
         error = result.error;
-        console.log('👤 All plans result:', { data, error, count: data?.length });
-        
-        // Filter plans by current user's email for regular users
-        if (data) {
-          data = data.filter(plan => plan.email === user.email);
-        }
-        console.log('👤 Filtered plans for user:', { count: data?.length });
+        console.log('👤 User plans result:', { data, error, count: data?.length });
       }
       
       console.log('📚 SimpleLearningPlans: Service result:', { data, error, count: data?.length });
@@ -180,7 +166,7 @@ export default function SimpleLearningPlans() {
     }
 
     setLoading(true);
-    const { data, error } = await learningPlanService.createPlan(newPlan);
+    const { data, error } = await learningPlansService.createPlan(newPlan);
     
     if (error) {
       toast({
@@ -195,8 +181,8 @@ export default function SimpleLearningPlans() {
         title: '',
         description: '',
         category: '',
-        status: 'not-started',
-        target_completion_date: null
+        status: 'In Progress',
+        target_completion_date: undefined
       });
       toast({
         title: "Plan Added",
@@ -221,9 +207,8 @@ export default function SimpleLearningPlans() {
     }
 
     setLoading(true);
-    const { data, error } = await learningPlanService.updatePlan(
-      editingPlan.email,
-      editingPlan.title,
+    const { data, error } = await learningPlansService.updatePlan(
+      editingPlan.id,
       editingPlan
     );
     
@@ -235,7 +220,7 @@ export default function SimpleLearningPlans() {
       });
     } else if (data) {
       setPlans(plans.map(plan => 
-        plan.email === editingPlan.email && plan.title === editingPlan.title ? data : plan
+        plan.id === editingPlan.id ? data : plan
       ));
       setEditingPlan(null);
       toast({
@@ -248,9 +233,9 @@ export default function SimpleLearningPlans() {
   };
 
   // Delete plan function
-  const deletePlan = async (email: string, title: string) => {
+  const deletePlan = async (id: string) => {
     setLoading(true);
-    const { error } = await learningPlanService.deletePlan(email, title);
+    const { error } = await learningPlansService.deletePlan(id);
     
     if (error) {
       toast({
@@ -259,10 +244,10 @@ export default function SimpleLearningPlans() {
         variant: "destructive"
       });
     } else {
-      setPlans(plans.filter(plan => !(plan.email === email && plan.title === title)));
+      setPlans(plans.filter(plan => plan.id !== id));
       toast({
         title: "Plan Deleted",
-        description: `${title} has been deleted successfully`
+        description: `Plan has been deleted successfully`
       });
     }
     
@@ -307,7 +292,7 @@ export default function SimpleLearningPlans() {
               <Label htmlFor="description">Description *</Label>
               <Input
                 id="description"
-                value={editingPlan?.description || newPlan.description}
+                value={editingPlan?.description || newPlan.description || ''}
                 onChange={(e) => editingPlan
                   ? setEditingPlan({...editingPlan, description: e.target.value})
                   : setNewPlan(prev => ({...prev, description: e.target.value}))
@@ -322,7 +307,7 @@ export default function SimpleLearningPlans() {
                 <Label htmlFor="category">Category *</Label>
                 <Input
                   id="category"
-                  value={editingPlan?.category || newPlan.category}
+                  value={editingPlan?.category || newPlan.category || ''}
                   onChange={(e) => editingPlan
                     ? setEditingPlan({...editingPlan, category: e.target.value})
                     : setNewPlan(prev => ({...prev, category: e.target.value}))
@@ -335,9 +320,9 @@ export default function SimpleLearningPlans() {
                 <Label htmlFor="status">Status</Label>
                 <select
                   id="status"
-                  value={editingPlan?.status || newPlan.status}
+                  value={editingPlan?.status || newPlan.status || 'In Progress'}
                   onChange={(e) => {
-                    const status = e.target.value as 'not-started' | 'in-progress' | 'completed' | 'archived';
+                    const status = e.target.value as 'In Progress' | 'Completed' | 'On Hold';
                     editingPlan
                       ? setEditingPlan({...editingPlan, status})
                       : setNewPlan(prev => ({...prev, status}));
@@ -345,10 +330,9 @@ export default function SimpleLearningPlans() {
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
                   disabled={loading}
                 >
-                  <option value="not-started">Not Started</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="completed">Completed</option>
-                  <option value="archived">Archived</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                  <option value="On Hold">On Hold</option>
                 </select>
               </div>
             </div>
@@ -424,7 +408,7 @@ export default function SimpleLearningPlans() {
           ) : (
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {plans.map((plan) => (
-                <div key={`${plan.email}-${plan.title}`} className="border rounded-lg p-4">
+                <div key={plan.id} className="border rounded-lg p-4">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
@@ -456,7 +440,7 @@ export default function SimpleLearningPlans() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => deletePlan(plan.email, plan.title)}
+                        onClick={() => deletePlan(plan.id)}
                         disabled={loading}
                       >
                         <Trash2 className="w-4 h-4" />

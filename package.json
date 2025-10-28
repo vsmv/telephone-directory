@@ -14,6 +14,7 @@
         "start:staging": "next start -p 3001",
         "lint": "next lint",
         "test": "jest",
+        "test:e2e": "jest --config=jest-e2e.config.js",
         "test:watch": "jest --watch",
         "test:coverage": "jest --coverage",
         "export": "next export",
@@ -31,7 +32,10 @@
         "supabase:reset": "npx supabase db reset",
         "automation:windows": "powershell -ExecutionPolicy Bypass -File setup-supabase-automation.ps1",
         "automation:unix": "./setup-supabase-automation.sh",
-        "automation:setup": "node -e \"process.platform === 'win32' ? require('child_process').exec('powershell -ExecutionPolicy Bypass -File setup-supabase-automation.ps1 -Action setup') : require('child_process').exec('./setup-supabase-automation.sh setup')\""
+        "automation:setup": "node -e \"process.platform === 'win32' ? require('child_process').exec('powershell -ExecutionPolicy Bypass -File setup-supabase-automation.ps1 -Action setup') : require('child_process').exec('./setup-supabase-automation.sh setup')\"",
+        "codacy:analyze": "node scripts/codacy-analyze.js",
+        "codacy:install": "npm install -g codacy-cli",
+        "codacy:precommit": "node scripts/pre-commit-codacy.js"
     },
     "dependencies": {
         "@hookform/resolvers": "^3.9.0",
@@ -47,6 +51,7 @@
         "bcryptjs": "^2.4.3",
         "class-variance-authority": "^0.7.0",
         "clsx": "^2.1.1",
+        "dotenv": "^17.2.3",
         "lucide-react": "^0.427.0",
         "nanoid": "^5.1.5",
         "next": "^14.2.32",
@@ -72,7 +77,9 @@
         "eslint-config-next": "14.2.5",
         "jest": "^29.7.0",
         "jest-environment-jsdom": "^29.7.0",
+        "jest-puppeteer": "^11.0.0",
         "postcss": "^8.4.41",
+        "puppeteer": "^24.26.1",
         "tailwindcss": "^3.4.9",
         "typescript": "^5.5.4"
     }

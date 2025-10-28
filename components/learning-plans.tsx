@@ -26,12 +26,7 @@ export function LearningPlans({ userEmail }: LearningPlansProps) {
     status: 'In Progress'
   });
 
-  // Load plans on component mount
-  useEffect(() => {
-    loadPlans();
-  }, [userEmail]);
-
-  const loadPlans = async () => {
+  const loadPlans = useCallback(async () => {
     setLoading(true);
     const { data, error } = await learningPlansService.getPlansByEmail(userEmail);
     if (error) {
@@ -44,7 +39,12 @@ export function LearningPlans({ userEmail }: LearningPlansProps) {
       setPlans(data);
     }
     setLoading(false);
-  };
+  }, [userEmail, toast]);
+
+  // Load plans on component mount
+  useEffect(() => {
+    loadPlans();
+  }, [loadPlans]);
 
   const handleAddPlan = async () => {
     if (!newPlan.title) {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,8 +19,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import type { LearningPlan } from '@/lib/types';
-import * as planService from '@/lib/ideas-and-plans';
+import type { LearningPlan, LearningPlanInsert } from '@/lib/ideas-and-plans';
+import { learningPlansService } from '@/lib/ideas-and-plans';
 import { Pencil, Trash2, Plus, Calendar } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -50,10 +50,10 @@ export default function LearningPlans({ email, isAdmin = false }: LearningPlansP
     target_completion_date: '',
   });
 
-  const loadPlans = async () => {
+  const loadPlans = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await planService.getLearningPlans(email);
+      const { data, error } = await learningPlansService.getPlansByEmail(email);
       if (error) throw error;
       setPlans(data || []);
     } catch (error: any) {
@@ -65,20 +65,24 @@ export default function LearningPlans({ email, isAdmin = false }: LearningPlansP
     } finally {
       setLoading(false);
     }
-  };
+  }, [email, toast]);
 
+  // Load plans on component mount
   useEffect(() => {
     loadPlans();
-  }, [email]);
+  }, [loadPlans]);
 
   const handleSubmit = async () => {
     try {
       if (editingPlan) {
         // Update existing plan
-        const { error } = await planService.updateLearningPlan(email, editingPlan.title, {
+        const { error } = await learningPlansService.updatePlan(editingPlan.id, {
           description: formData.description,
           category: formData.category,
-          status: formData.status,
+          status: formData.status === 'not-started' ? 'In Progress' : 
+                   formData.status === 'in-progress' ? 'In Progress' : 
+                   formData.status === 'completed' ? 'Completed' : 
+                   formData.status === 'archived' ? 'On Hold' : 'In Progress',
           target_completion_date: formData.target_completion_date || undefined,
         });
         if (error) throw error;
@@ -88,9 +92,16 @@ export default function LearningPlans({ email, isAdmin = false }: LearningPlansP
         });
       } else {
         // Create new plan
-        const { error } = await planService.createLearningPlan({
+        const { error } = await learningPlansService.createPlan({
           email,
-          ...formData,
+          title: formData.title,
+          description: formData.description,
+          category: formData.category,
+          status: formData.status === 'not-started' ? 'In Progress' : 
+                  formData.status === 'in-progress' ? 'In Progress' : 
+                  formData.status === 'completed' ? 'Completed' : 
+                  formData.status === 'archived' ? 'On Hold' : 'In Progress',
+          target_completion_date: formData.target_completion_date || undefined,
         });
         if (error) throw error;
         toast({
@@ -111,7 +122,7 @@ export default function LearningPlans({ email, isAdmin = false }: LearningPlansP
 
   const handleDelete = async (title: string) => {
     try {
-      const { error } = await planService.deleteLearningPlan(email, title);
+      const { error } = await learningPlansService.deletePlan(title);
       if (error) throw error;
       toast({
         title: 'Success',
@@ -133,7 +144,9 @@ export default function LearningPlans({ email, isAdmin = false }: LearningPlansP
       title: plan.title,
       description: plan.description,
       category: plan.category,
-      status: plan.status,
+      status: plan.status === 'In Progress' ? 'in-progress' : 
+               plan.status === 'Completed' ? 'completed' : 
+               plan.status === 'On Hold' ? 'archived' : 'not-started',
       target_completion_date: plan.target_completion_date || '',
     });
     setShowDialog(true);
@@ -145,7 +158,7 @@ export default function LearningPlans({ email, isAdmin = false }: LearningPlansP
       title: '',
       description: '',
       category: '',
-      status: 'not-started' as const,
+      status: 'not-started' as 'not-started' | 'in-progress' | 'completed' | 'archived',
       target_completion_date: '',
     });
     setShowDialog(true);

@@ -28,6 +28,7 @@ A comprehensive telephone directory application built for ACTREC (Advanced Centr
 - **Backend**: Supabase (PostgreSQL, Authentication, Real-time)
 - **File Processing**: PapaParse for CSV handling
 - **Testing**: Jest, React Testing Library
+- **Code Quality**: Codacy integration for static analysis
 
 ## Quick Start
 
@@ -73,6 +74,40 @@ A comprehensive telephone directory application built for ACTREC (Advanced Centr
 
 6. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
+
+## Code Quality with Codacy
+
+This project is integrated with Codacy for automated code quality analysis:
+
+### Features
+- **Static Analysis**: ESLint, PMD, Semgrep for code quality
+- **Security Scanning**: Trivy for vulnerability detection
+- **Code Complexity**: Lizard for complexity metrics
+- **CI/CD Integration**: GitHub Actions workflow
+- **Pre-commit Hooks**: Local analysis before committing
+
+### Running Analysis Locally
+```bash
+# Run Codacy analysis on the entire project
+npm run codacy:analyze
+
+# Install Codacy CLI (if not already installed)
+npm run codacy:install
+
+# Run pre-commit analysis (staged files only)
+npm run codacy:precommit
+```
+
+### GitHub Actions
+The project includes a GitHub Actions workflow that automatically runs Codacy analysis:
+- On every push to main/master branch
+- On every pull request
+- Daily scheduled runs
+
+### Configuration
+- `.codacy.yml` - Main Codacy configuration
+- `.github/workflows/codacy-analysis.yml` - CI/CD workflow
+- Pre-commit hooks in `.git/hooks/pre-commit`
 
 ## Database Schema
 

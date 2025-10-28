@@ -70,7 +70,7 @@ export default function AdminSettings() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   // Load data on component mount
   useEffect(() => {

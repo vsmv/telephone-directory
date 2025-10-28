@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -24,12 +24,7 @@ export function PatentableIdeas({ userEmail }: PatentableIdeasProps) {
     category: ''
   });
 
-  // Load ideas on component mount
-  useEffect(() => {
-    loadIdeas();
-  }, [userEmail]);
-
-  const loadIdeas = async () => {
+  const loadIdeas = useCallback(async () => {
     setLoading(true);
     const { data, error } = await patentableIdeasService.getIdeasByEmail(userEmail);
     if (error) {
@@ -42,7 +37,12 @@ export function PatentableIdeas({ userEmail }: PatentableIdeasProps) {
       setIdeas(data);
     }
     setLoading(false);
-  };
+  }, [userEmail, patentableIdeasService, toast]);
+
+  // Load ideas on component mount
+  useEffect(() => {
+    loadIdeas();
+  }, [loadIdeas]);
 
   const handleAddIdea = async () => {
     if (!newIdea.title) {
