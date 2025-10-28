@@ -1,0 +1,25 @@
+---
+engines:
+  - eslint:
+      enabled: true
+  - lizard:
+      enabled: true
+  - pmd:
+      enabled: true
+      exclude_paths:
+        - "node_modules/**"
+        - ".next/**"
+        - "supabase/migrations/**"
+  - semgrep:
+      enabled: true
+  - trivy:
+      enabled: true
+
+exclude_paths:
+  - "node_modules/**"
+  - ".next/**"
+  - ".git/**"
+  - "supabase/migrations/**"
+  - "__tests__/**"
+  - "*.test.*"
+  - "*.spec.*"

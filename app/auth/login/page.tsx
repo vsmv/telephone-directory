@@ -8,13 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
-import { Lock, User, ArrowLeft } from "lucide-react";
+import { Lock, User, Search as SearchIcon, ArrowLeft } from "lucide-react";
 
 export default function LoginPage() {
   const [credentials, setCredentials] = useState({
-    username: "",
+    userId: "",
     password: ""
   });
+  const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
@@ -25,10 +26,10 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Convert username to email format for auth service
-      const email = credentials.username === "admin" 
-        ? "admin@actrec.gov.in" 
-        : "user@actrec.gov.in";
+      // Convert user ID to email format for auth service
+      const email = credentials.userId.includes('@') 
+        ? credentials.userId 
+        : `${credentials.userId}@actrec.gov.in`;
       
       const { user, error } = await login(email, credentials.password);
       
@@ -62,9 +63,16 @@ export default function LoginPage() {
     }
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchTerm)}`);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md space-y-6">
         <Card className="shadow-lg">
           <CardHeader className="text-center">
             <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -78,15 +86,15 @@ export default function LoginPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="userId">User ID</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
-                    id="username"
+                    id="userId"
                     type="text"
-                    placeholder="Enter your username"
-                    value={credentials.username}
-                    onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
+                    placeholder="Enter your user ID or email"
+                    value={credentials.userId}
+                    onChange={(e) => setCredentials(prev => ({ ...prev, userId: e.target.value }))}
                     className="pl-10"
                     required
                   />
@@ -139,6 +147,40 @@ export default function LoginPage() {
                 </Button>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Search Section */}
+        <Card className="shadow-lg">
+          <CardHeader className="text-center">
+            <CardTitle className="text-xl flex items-center justify-center gap-2">
+              <SearchIcon className="w-5 h-5" />
+              Public Search
+            </CardTitle>
+            <CardDescription>
+              Search the directory without logging in
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSearch} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="search">Search Contacts</Label>
+                <div className="relative">
+                  <SearchIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="search"
+                    type="text"
+                    placeholder="Search by name, department, email, etc."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <Button type="submit" className="w-full" variant="secondary">
+                Search Directory
+              </Button>
+            </form>
           </CardContent>
         </Card>
       </div>

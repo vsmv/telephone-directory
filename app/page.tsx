@@ -9,34 +9,39 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 flex items-center justify-center p-4">
       <div className="w-full max-w-4xl">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-4">
-            <Shield className="w-5 h-5 text-white" />
-            <span className="text-white font-medium">ACTREC Directory</span>
+        <div className="text-center mb-12">
+          <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Building className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
-            Consolidated Telephone Directory
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 mb-6">
+            <Shield className="w-5 h-5 text-white" />
+            <span className="text-white font-semibold text-lg">ACTREC Directory System</span>
+          </div>
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
+            Telephone Directory
           </h1>
-          <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+          <p className="text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
             Advanced Centre for Treatment, Research, and Education in Cancer
+            <br />
+            <span className="text-lg opacity-90">Comprehensive contact management and organizational tools</span>
           </p>
         </div>
 
         {/* Main Content */}
-        <div className="grid gap-6 md:grid-cols-2 mb-8 max-w-2xl mx-auto">
+        <div className="grid gap-8 md:grid-cols-3 mb-12">
           <Link href="/auth/login" className="group">
             <Card className="h-full bg-white/95 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
               <CardHeader className="text-center pb-4">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-200 transition-colors">
                   <Shield className="w-8 h-8 text-blue-600" />
                 </div>
-                <CardTitle className="text-xl text-gray-900">User Login</CardTitle>
+                <CardTitle className="text-xl text-gray-900">Login</CardTitle>
                 <CardDescription className="text-gray-600">
-                  Admin & Regular User Access
+                  Access your dashboard and manage your data
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center">
-                <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl">
                   Sign In
                 </Button>
               </CardContent>
@@ -51,52 +56,36 @@ export default function HomePage() {
                 </div>
                 <CardTitle className="text-xl text-gray-900">Search Directory</CardTitle>
                 <CardDescription className="text-gray-600">
-                  Search All Contacts
+                  Find contacts and information
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center">
-                <Button className="w-full bg-green-600 hover:bg-green-700">
-                  Start Searching
+                <Button className="w-full bg-gradient-to-r from-green-600 to-teal-700 hover:from-green-700 hover:to-teal-800 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl">
+                  Search Now
+                </Button>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard" className="group">
+            <Card className="h-full bg-white/95 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
+              <CardHeader className="text-center pb-4">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-200 transition-colors">
+                  <Settings className="w-8 h-8 text-purple-600" />
+                </div>
+                <CardTitle className="text-xl text-gray-900">Admin Dashboard</CardTitle>
+                <CardDescription className="text-gray-600">
+                  Manage Contacts & Data
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center">
+                <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-700 hover:from-purple-700 hover:to-pink-800 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl">
+                  Open Dashboard
                 </Button>
               </CardContent>
             </Card>
           </Link>
         </div>
-
-        {/* Demo Credentials */}
-        <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-xl mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="w-5 h-5" />
-              Demo Login Credentials
-            </CardTitle>
-            <CardDescription>
-              Use these credentials to explore the system
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-blue-900">Administrator</h4>
-                  <p className="text-sm text-blue-700 font-mono">admin / admin123</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <Search className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-green-900">Regular User</h4>
-                  <p className="text-sm text-green-700 font-mono">user / user123</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Sample Contact */}
         <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-xl">

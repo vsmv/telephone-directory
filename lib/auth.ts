@@ -57,7 +57,6 @@ export const ROLE_PERMISSIONS: Record<'admin' | 'regular', RolePermissions> = {
 class AuthService {
   private currentUser: UserSession | null = null;
 
-  // Mock authentication for demo purposes
   async getCurrentUser(): Promise<UserSession | null> {
     if (this.currentUser) {
       return this.currentUser;
@@ -76,7 +75,7 @@ class AuthService {
   }
 
   async login(email: string, password: string): Promise<{ user: UserSession | null; error: string | null }> {
-    // Mock login logic
+    // Mock login logic - in a real app, this would call Supabase auth
     if (email === 'admin@actrec.gov.in' && password === 'admin123') {
       this.currentUser = {
         id: 'demo-admin-1',
@@ -90,6 +89,8 @@ class AuthService {
         role: 'regular'
       };
     } else {
+      // In a real app, we would check against the database
+      // For now, we'll just return an error for unknown credentials
       return { user: null, error: 'Invalid credentials' };
     }
 
