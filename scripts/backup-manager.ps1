@@ -19,10 +19,10 @@ $ProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 Set-Location $ProjectRoot
 
 # Colors for output
-function Write-Success { param($msg) Write-Host "✓ $msg" -ForegroundColor Green }
-function Write-Info { param($msg) Write-Host "ℹ $msg" -ForegroundColor Cyan }
-function Write-Warning { param($msg) Write-Host "⚠ $msg" -ForegroundColor Yellow }
-function Write-Error { param($msg) Write-Host "✗ $msg" -ForegroundColor Red }
+function Write-Success { param($msg) Write-Host "[OK] $msg" -ForegroundColor Green }
+function Write-Info { param($msg) Write-Host "[INFO] $msg" -ForegroundColor Cyan }
+function Write-Warning { param($msg) Write-Host "[WARN] $msg" -ForegroundColor Yellow }
+function Write-Error { param($msg) Write-Host "[ERROR] $msg" -ForegroundColor Red }
 
 # Check if Git is installed
 function Test-GitInstalled {
@@ -231,7 +231,7 @@ function Show-BackupStatus {
     Write-Info "=== Backup Status ==="
     
     # Git status
-    Write-Host "`n📊 Git Status:" -ForegroundColor Cyan
+    Write-Host "`n[Git Status]" -ForegroundColor Cyan
     git status --short
     
     # Current branch and commit
@@ -241,15 +241,15 @@ function Show-BackupStatus {
     Write-Host "Commit: $commit" -ForegroundColor Yellow
     
     # Remote status
-    Write-Host "`n🌐 Remote Status:" -ForegroundColor Cyan
+    Write-Host "`n[Remote Status]" -ForegroundColor Cyan
     git remote -v
     
     # Recent commits
-    Write-Host "`n📝 Recent Commits:" -ForegroundColor Cyan
+    Write-Host "`n[Recent Commits]" -ForegroundColor Cyan
     git log --oneline -5
     
     # Local backups
-    Write-Host "`n💾 Local Backups:" -ForegroundColor Cyan
+    Write-Host "`n[Local Backups]" -ForegroundColor Cyan
     if (Test-Path "backups/local") {
         $backups = Get-ChildItem "backups/local" -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 5
         foreach ($backup in $backups) {
@@ -260,7 +260,7 @@ function Show-BackupStatus {
     }
     
     # Tags
-    Write-Host "`n🏷️  Backup Tags:" -ForegroundColor Cyan
+    Write-Host "`n[Backup Tags]" -ForegroundColor Cyan
     $tags = git tag -l "backup-*" | Select-Object -Last 5
     if ($tags) {
         $tags | ForEach-Object { Write-Host "  - $_" }
@@ -274,7 +274,7 @@ function Restore-FromBackup {
     Write-Warning "Restore functionality - Use with caution!"
     
     # List available backups
-    Write-Host "`n📦 Available Local Backups:" -ForegroundColor Cyan
+    Write-Host "`n[Available Local Backups]" -ForegroundColor Cyan
     $backups = Get-ChildItem "backups/local" -Directory | Sort-Object LastWriteTime -Descending
     
     if ($backups.Count -eq 0) {
@@ -314,7 +314,7 @@ function Restore-FromBackup {
 }
 
 # Main execution
-Write-Host "`n🔄 ACTREC Telephone Directory - Backup Manager" -ForegroundColor Magenta
+Write-Host "`n[Backup Manager] ACTREC Telephone Directory" -ForegroundColor Magenta
 Write-Host "============================================`n" -ForegroundColor Magenta
 
 if (-not (Test-GitInstalled)) {
@@ -331,7 +331,7 @@ switch ($Action) {
         Backup-DatabaseSchema
         Backup-Configuration
         Create-GitBackup -commitMessage $Message
-        Write-Success "`n✓ Complete backup created successfully!"
+        Write-Success "`nComplete backup created successfully!"
     }
     'status' {
         Show-BackupStatus
@@ -341,4 +341,4 @@ switch ($Action) {
     }
 }
 
-Write-Host "`n✓ Backup manager completed" -ForegroundColor Green
+Write-Host "`nBackup manager completed" -ForegroundColor Green
