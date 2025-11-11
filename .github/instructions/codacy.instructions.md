@@ -6,7 +6,6 @@
 # Codacy Rules
 Configuration for AI behavior when interacting with Codacy's MCP Server
 
-<<<<<<< HEAD
 ## using any tool that accepts the arguments: `provider`, `organization`, or `repository`
 - ALWAYS use:
  - provider: gh
@@ -14,8 +13,6 @@ Configuration for AI behavior when interacting with Codacy's MCP Server
  - repository: telephone-directory
 - Avoid calling `git remote -v` unless really necessary
 
-=======
->>>>>>> 3e6bf04f213dd58e352a8fd6c4e94a98c9086095
 ## CRITICAL: After ANY successful `edit_file` or `reapply` operation
 - YOU MUST IMMEDIATELY run the `codacy_cli_analyze` tool from Codacy's MCP Server for each file that was edited, with:
  - `rootPath`: set to the workspace path
