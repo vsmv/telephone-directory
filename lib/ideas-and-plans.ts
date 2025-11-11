@@ -42,6 +42,14 @@ export interface LearningPlanInsert {
 
 // Patentable Ideas Service
 export class PatentableIdeasService {
+  // Get all ideas (for admin view)
+  async getAllIdeas() {
+    return await supabase
+      .from('patentable_ideas')
+      .select('*')
+      .order('date_added', { ascending: false });
+  }
+
   async getIdeasByEmail(email: string) {
     return await supabase
       .from('patentable_ideas')
@@ -77,6 +85,14 @@ export class PatentableIdeasService {
 
 // Learning Plans Service
 export class LearningPlansService {
+  // Get all plans (for admin view)
+  async getAllPlans() {
+    return await supabase
+      .from('learning_plans')
+      .select('*')
+      .order('date_added', { ascending: false});
+  }
+
   async getPlansByEmail(email: string) {
     return await supabase
       .from('learning_plans')

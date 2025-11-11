@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+"use client";
+
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -7,7 +9,7 @@ import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { LearningPlan, LearningPlanInsert, learningPlansService } from '@/lib/ideas-and-plans';
-import { Plus, Edit, Trash2, Save } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, BookOpen, Loader2 } from 'lucide-react';
 
 interface LearningPlansProps {
   userEmail: string;
@@ -28,7 +30,8 @@ export function LearningPlans({ userEmail }: LearningPlansProps) {
 
   const loadPlans = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await learningPlansService.getPlansByEmail(userEmail);
+    // Fetch ALL plans (not filtered by email) - admin can see all
+    const { data, error } = await learningPlansService.getAllPlans();
     if (error) {
       toast({
         title: 'Error Loading Plans',
@@ -39,7 +42,7 @@ export function LearningPlans({ userEmail }: LearningPlansProps) {
       setPlans(data);
     }
     setLoading(false);
-  }, [userEmail, toast]);
+  }, [toast]);
 
   // Load plans on component mount
   useEffect(() => {
@@ -131,12 +134,78 @@ export function LearningPlans({ userEmail }: LearningPlansProps) {
     }
   };
 
+  const inProgressCount = plans.filter(p => p.status === 'In Progress').length;
+  const completedCount = plans.filter(p => p.status === 'Completed').length;
+  const onHoldCount = plans.filter(p => p.status === 'On Hold').length;
+
   return (
     <div className="space-y-4">
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{plans.length}</p>
+                <p className="text-sm text-gray-600">Total Plans</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-yellow-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{inProgressCount}</p>
+                <p className="text-sm text-gray-600">In Progress</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{completedCount}</p>
+                <p className="text-sm text-gray-600">Completed</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-gray-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{onHoldCount}</p>
+                <p className="text-sm text-gray-600">On Hold</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Add New Plan Form */}
       <Card>
         <CardHeader>
-          <CardTitle>Add New Learning Plan</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Plus className="w-5 h-5" />
+            Add New Learning Plan
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -156,6 +225,7 @@ export function LearningPlans({ userEmail }: LearningPlansProps) {
                 value={newPlan.description || ''}
                 onChange={e => setNewPlan({ ...newPlan, description: e.target.value })}
                 placeholder="Enter plan description"
+                rows={4}
               />
             </div>
             <div>
@@ -193,7 +263,7 @@ export function LearningPlans({ userEmail }: LearningPlansProps) {
               />
             </div>
             <Button onClick={handleAddPlan} disabled={loading}>
-              <Plus className="w-4 h-4 mr-2" />
+              {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
               Add Plan
             </Button>
           </div>
@@ -201,112 +271,161 @@ export function LearningPlans({ userEmail }: LearningPlansProps) {
       </Card>
 
       {/* Plans List */}
-      <div className="space-y-4">
-        {plans.map(plan => (
-          <Card key={plan.id}>
-            <CardContent className="pt-6">
-              {editing === plan.id ? (
-                <div className="space-y-4">
-                  <Input
-                    value={plan.title}
-                    onChange={e => setPlans(plans.map(p => 
-                      p.id === plan.id ? { ...p, title: e.target.value } : p
-                    ))}
-                  />
-                  <Textarea
-                    value={plan.description}
-                    onChange={e => setPlans(plans.map(p => 
-                      p.id === plan.id ? { ...p, description: e.target.value } : p
-                    ))}
-                  />
-                  <Input
-                    value={plan.category}
-                    onChange={e => setPlans(plans.map(p => 
-                      p.id === plan.id ? { ...p, category: e.target.value } : p
-                    ))}
-                  />
-                  <Select
-                    value={plan.status}
-                    onValueChange={value => setPlans(plans.map(p =>
-                      p.id === plan.id ? { ...p, status: value as 'In Progress' | 'Completed' | 'On Hold' } : p
-                    ))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="In Progress">In Progress</SelectItem>
-                      <SelectItem value="Completed">Completed</SelectItem>
-                      <SelectItem value="On Hold">On Hold</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    type="date"
-                    value={plan.target_completion_date || ''}
-                    onChange={e => setPlans(plans.map(p =>
-                      p.id === plan.id ? { ...p, target_completion_date: e.target.value } : p
-                    ))}
-                  />
-                  <div className="space-x-2">
-                    <Button onClick={() => handleUpdatePlan(plan.id, {
-                      title: plan.title,
-                      description: plan.description,
-                      category: plan.category,
-                      status: plan.status as any,
-                      target_completion_date: plan.target_completion_date
-                    })}>
-                      <Save className="w-4 h-4 mr-2" />
-                      Save
-                    </Button>
-                    <Button variant="outline" onClick={() => setEditing(null)}>
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-semibold">{plan.title}</h3>
-                      <p className="text-sm text-gray-500 mt-1">{plan.description}</p>
-                      <p className="text-sm text-gray-500 mt-1">Category: {plan.category}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Select
-                          value={plan.status}
-                          onValueChange={value => handleStatusChange(plan.id, value as any)}
-                        >
-                          <SelectTrigger className="w-[150px]">
-                            <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="In Progress">In Progress</SelectItem>
-                            <SelectItem value="Completed">Completed</SelectItem>
-                            <SelectItem value="On Hold">On Hold</SelectItem>
-                          </SelectContent>
-                        </Select>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BookOpen className="w-5 h-5" />
+            All Learning Plans ({plans.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-8 h-8 animate-spin" />
+              <span className="ml-2">Loading plans...</span>
+            </div>
+          ) : plans.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
+              <p className="mt-2">No learning plans found</p>
+              <p className="text-sm">Add your first plan using the form above</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {plans.map(plan => (
+                <Card key={plan.id}>
+                  <CardContent className="pt-6">
+                    {editing === plan.id ? (
+                      <div className="space-y-4">
+                        <div>
+                          <Label>Title</Label>
+                          <Input
+                            value={plan.title}
+                            onChange={e => setPlans(plans.map(p => 
+                              p.id === plan.id ? { ...p, title: e.target.value } : p
+                            ))}
+                          />
+                        </div>
+                        <div>
+                          <Label>Description</Label>
+                          <Textarea
+                            value={plan.description}
+                            onChange={e => setPlans(plans.map(p => 
+                              p.id === plan.id ? { ...p, description: e.target.value } : p
+                            ))}
+                            rows={4}
+                          />
+                        </div>
+                        <div>
+                          <Label>Category</Label>
+                          <Input
+                            value={plan.category}
+                            onChange={e => setPlans(plans.map(p => 
+                              p.id === plan.id ? { ...p, category: e.target.value } : p
+                            ))}
+                          />
+                        </div>
+                        <div>
+                          <Label>Status</Label>
+                          <Select
+                            value={plan.status}
+                            onValueChange={value => setPlans(plans.map(p =>
+                              p.id === plan.id ? { ...p, status: value as 'In Progress' | 'Completed' | 'On Hold' } : p
+                            ))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="In Progress">In Progress</SelectItem>
+                              <SelectItem value="Completed">Completed</SelectItem>
+                              <SelectItem value="On Hold">On Hold</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label>Target Completion Date</Label>
+                          <Input
+                            type="date"
+                            value={plan.target_completion_date || ''}
+                            onChange={e => setPlans(plans.map(p =>
+                              p.id === plan.id ? { ...p, target_completion_date: e.target.value } : p
+                            ))}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button onClick={() => handleUpdatePlan(plan.id, {
+                            title: plan.title,
+                            description: plan.description,
+                            category: plan.category,
+                            status: plan.status as any,
+                            target_completion_date: plan.target_completion_date
+                          })} disabled={loading}>
+                            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                            Save
+                          </Button>
+                          <Button variant="outline" onClick={() => setEditing(null)} disabled={loading}>
+                            Cancel
+                          </Button>
+                        </div>
                       </div>
-                      <p className="text-xs text-gray-400 mt-2">
-                        Added: {new Date(plan.date_added).toLocaleDateString()}
-                        {plan.target_completion_date && 
-                          ` | Target: ${new Date(plan.target_completion_date).toLocaleDateString()}`
-                        }
-                      </p>
-                    </div>
-                    <div className="space-x-2">
-                      <Button variant="outline" size="icon" onClick={() => setEditing(plan.id)}>
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="outline" size="icon" onClick={() => handleDeletePlan(plan.id)}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                    ) : (
+                      <div>
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-lg">{plan.title}</h3>
+                            <p className="text-sm text-gray-600 mt-2">{plan.description}</p>
+                            <div className="flex items-center gap-4 mt-3">
+                              <span className="text-sm text-gray-500">
+                                <strong>Category:</strong> {plan.category || 'Uncategorized'}
+                              </span>
+                              <span className="text-sm text-gray-500">
+                                <strong>Email:</strong> {plan.email}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 mt-3">
+                              <Label className="text-sm">Status:</Label>
+                              <Select
+                                value={plan.status}
+                                onValueChange={value => handleStatusChange(plan.id, value as any)}
+                                disabled={loading}
+                              >
+                                <SelectTrigger className="w-[150px]">
+                                  <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="In Progress">In Progress</SelectItem>
+                                  <SelectItem value="Completed">Completed</SelectItem>
+                                  <SelectItem value="On Hold">On Hold</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <p className="text-xs text-gray-400 mt-2">
+                              Added: {new Date(plan.date_added).toLocaleDateString()} • 
+                              Last Modified: {new Date(plan.last_modified).toLocaleDateString()}
+                              {plan.target_completion_date && 
+                                ` • Target: ${new Date(plan.target_completion_date).toLocaleDateString()}`
+                              }
+                            </p>
+                          </div>
+                          <div className="flex gap-2 ml-4">
+                            <Button variant="outline" size="icon" onClick={() => setEditing(plan.id)} disabled={loading}>
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button variant="outline" size="icon" onClick={() => handleDeletePlan(plan.id)} disabled={loading}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
