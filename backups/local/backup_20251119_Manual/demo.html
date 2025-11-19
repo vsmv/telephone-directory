@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACTREC Telephone Directory - Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .contact-card {
+            transition: all 0.2s ease-in-out;
+        }
+        .contact-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-semibold text-gray-900">ACTREC Telephone Directory</h1>
+                    <span class="ml-4 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">Demo Mode</span>
+                </div>
+                <button class="flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                    Logout
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bg-white border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-8">
+                <button class="py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600">
+                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    Search Directory
+                </button>
+                <button class="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    Administration
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <!-- Search Bar -->
+        <div class="mb-6">
+            <div class="relative">
+                <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input 
+                    type="text" 
+                    placeholder="Search by name, department, designation, phone, email, location..."
+                    class="pl-10 h-12 w-full text-lg border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    id="searchInput"
+                    oninput="filterContacts()"
+                >
+            </div>
+            <p class="mt-2 text-sm text-gray-600">
+                Search across all fields including name, department, designation, phone number, extension, email, location, and institution.
+            </p>
+        </div>
+
+        <!-- Search Results -->
+        <div class="space-y-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-medium text-gray-900" id="resultsCount">
+                    Sample Contacts (5 found)
+                </h2>
+            </div>
+            
+            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3" id="contactsGrid">
+                <!-- Contact Card 1 -->
+                <div class="contact-card bg-white rounded-lg shadow-sm border hover:shadow-md p-6" data-search="dr prashant bhat medical administration doctor -7671 5042 prashant.bhat@actrec.gov.in second floor actrec">
+                    <div class="mb-3">
+                        <h3 class="text-lg font-semibold text-gray-900">DR. PRASHANT BHAT</h3>
+                        <p class="text-sm text-gray-600">Doctor • Medical Administration</p>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                            </svg>
+                            <span>-7671</span>
+                            <span class="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Ext: 5042</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            <span class="truncate">prashant.bhat@actrec.gov.in</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span>Second Floor</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                            <span>ACTREC</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Card 2 -->
+                <div class="contact-card bg-white rounded-lg shadow-sm border hover:shadow-md p-6" data-search="mrs pragati medical administration ms office -7671 5674 pragati@actrec.gov.in second floor actrec">
+                    <div class="mb-3">
+                        <h3 class="text-lg font-semibold text-gray-900">MRS. PRAGATI</h3>
+                        <p class="text-sm text-gray-600">MS Office • Medical Administration</p>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                            </svg>
+                            <span>-7671</span>
+                            <span class="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Ext: 5674</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            <span class="truncate">pragati@actrec.gov.in</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span>Second Floor</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                            <span>ACTREC</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Card 3 -->
+                <div class="contact-card bg-white rounded-lg shadow-sm border hover:shadow-md p-6" data-search="dr rajesh kumar oncology research senior researcher -7672 5100 rajesh.kumar@actrec.gov.in third floor actrec">
+                    <div class="mb-3">
+                        <h3 class="text-lg font-semibold text-gray-900">DR. RAJESH KUMAR</h3>
+                        <p class="text-sm text-gray-600">Senior Researcher • Oncology Research</p>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                            </svg>
+                            <span>-7672</span>
+                            <span class="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Ext: 5100</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            <span class="truncate">rajesh.kumar@actrec.gov.in</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span>Third Floor</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                            <span>ACTREC</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Card 4 -->
+                <div class="contact-card bg-white rounded-lg shadow-sm border hover:shadow-md p-6" data-search="ms priya sharma it department system administrator -7673 5200 priya.sharma@actrec.gov.in first floor actrec">
+                    <div class="mb-3">
+                        <h3 class="text-lg font-semibold text-gray-900">MS. PRIYA SHARMA</h3>
+                        <p class="text-sm text-gray-600">System Administrator • IT Department</p>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                            </svg>
+                            <span>-7673</span>
+                            <span class="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Ext: 5200</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            <span class="truncate">priya.sharma@actrec.gov.in</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span>First Floor</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                            <span>ACTREC</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Card 5 -->
+                <div class="contact-card bg-white rounded-lg shadow-sm border hover:shadow-md p-6" data-search="dr anita desai bioinformatics principal investigator -7674 5300 anita.desai@actrec.gov.in fourth floor actrec">
+                    <div class="mb-3">
+                        <h3 class="text-lg font-semibold text-gray-900">DR. ANITA DESAI</h3>
+                        <p class="text-sm text-gray-600">Principal Investigator • Bioinformatics</p>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                            </svg>
+                            <span>-7674</span>
+                            <span class="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Ext: 5300</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            <span class="truncate">anita.desai@actrec.gov.in</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span>Fourth Floor</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                            <span>ACTREC</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function filterContacts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const contactCards = document.querySelectorAll('.contact-card');
+            const resultsCount = document.getElementById('resultsCount');
+            let visibleCount = 0;
+
+            contactCards.forEach(card => {
+                const searchData = card.getAttribute('data-search').toLowerCase();
+                if (searchData.includes(searchTerm)) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            resultsCount.textContent = `Search Results (${visibleCount} found)`;
+            
+            if (searchTerm === '') {
+                resultsCount.textContent = 'Sample Contacts (5 found)';
+            }
+        }
+
+        // Add some interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('ACTREC Telephone Directory Demo Loaded');
+            
+            // Add click handlers for demonstration
+            document.querySelectorAll('.contact-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const name = this.querySelector('h3').textContent;
+                    alert(`Contact selected: ${name}\n\nIn the full application, this would show detailed contact information or actions.`);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

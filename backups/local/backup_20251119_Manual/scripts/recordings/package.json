@@ -1,0 +1,15 @@
+{
+  "name": "telephone-directory-demos",
+  "version": "1.0.0",
+  "description": "Demo recording scripts for ACTREC Telephone Directory",
+  "scripts": {
+    "demo:admin": "node admin-demo.js",
+    "demo:user": "node user-demo.js",
+    "demo:public": "node public-search-demo.js",
+    "demo:full": "node full-demo.js",
+    "demo:record-admin": "node record-admin-demo.js"
+  },
+  "dependencies": {
+    "puppeteer": "^24.26.1"
+  }
+}
