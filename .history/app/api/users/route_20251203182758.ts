@@ -1,0 +1,18 @@
+import { NextResponse } from 'next/server';
+import { getUsers } from '@/lib/database';
+
+export async function GET() {
+  try {
+    const users = await getUsers();
+    return NextResponse.json({ 
+      success: true, 
+      data: users 
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Failed to fetch users' 
+    }, { status: 500 });
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "total": 12,
+  "passed": 0,
+  "failed": 12,
+  "tests": [
+    {
+      "name": "Admin Login",
+      "passed": false,
+      "message": "Waiting for selector `input[type=\"email\"], input[name=\"email\"]` failed"
+    },
+    {
+      "name": "Single User Creation",
+      "passed": false,
+      "message": "Input fields not found"
+    },
+    {
+      "name": "Select All Users",
+      "passed": false,
+      "message": "Select All button not found"
+    },
+    {
+      "name": "Bulk Role Change Available",
+      "passed": false,
+      "message": "Bulk role change button not found"
+    },
+    {
+      "name": "Bulk Password Reset Available",
+      "passed": false,
+      "message": "Bulk password reset button not found"
+    },
+    {
+      "name": "Add Patentable Idea",
+      "passed": false,
+      "message": "Waiting for selector `input[placeholder*=\"title\"], input[id*=\"title\"]` failed"
+    },
+    {
+      "name": "Edit Patentable Idea",
+      "passed": false,
+      "message": "Edit button not found"
+    },
+    {
+      "name": "Select All Patents",
+      "passed": false,
+      "message": "Select All button not found"
+    },
+    {
+      "name": "Add Learning Plan",
+      "passed": false,
+      "message": "Waiting for selector `input[placeholder*=\"title\"], input[id*=\"title\"]` failed"
+    },
+    {
+      "name": "Edit Learning Plan",
+      "passed": false,
+      "message": "Edit button not found"
+    },
+    {
+      "name": "Select All Plans",
+      "passed": false,
+      "message": "Select All button not found"
+    },
+    {
+      "name": "User Info in Header",
+      "passed": false,
+      "message": "User info not visible in header"
+    }
+  ]
+}
