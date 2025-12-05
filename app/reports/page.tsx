@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -67,28 +67,7 @@ function ReportsPageContent() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [filteredData, setFilteredData] = useState<any[]>([]);
 
-  useEffect(() => {
-    console.log('Reports page - useEffect triggered', { authLoading, user: !!user, isAdmin, reportType });
-    
-    // Wait for auth to load before checking
-    if (authLoading) {
-      console.log('Reports page - Waiting for auth to load...');
-      return;
-    }
-    
-    console.log('Reports page - Auth loaded, checking permissions', { hasUser: !!user, isAdmin });
-    
-    if (!user || !isAdmin) {
-      console.log('Reports page - Auth check failed, redirecting to dashboard', { user: !!user, isAdmin });
-      router.push('/dashboard');
-      return;
-    }
-    
-    console.log('Reports page - Auth OK, loading data for:', reportType);
-    loadReportData();
-  }, [reportType, filterBy, filterValue, user, isAdmin, authLoading, router]);
-
-  const loadReportData = async () => {
+  const loadReportData = useCallback(async () => {
     setLoading(true);
     try {
       if (reportType === 'ideas') {
@@ -139,7 +118,29 @@ function ReportsPageContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [reportType, filterBy, filterValue]);
+
+  // Main effect to load data when auth is ready or params change
+  useEffect(() => {
+    console.log('Reports page - useEffect triggered', { authLoading, user: !!user, isAdmin, reportType });
+    
+    // Wait for auth to load before checking
+    if (authLoading) {
+      console.log('Reports page - Waiting for auth to load...');
+      return;
+    }
+    
+    console.log('Reports page - Auth loaded, checking permissions', { hasUser: !!user, isAdmin });
+    
+    if (!user || !isAdmin) {
+      console.log('Reports page - Auth check failed, redirecting to dashboard', { user: !!user, isAdmin });
+      router.push('/dashboard');
+      return;
+    }
+    
+    console.log('Reports page - Auth OK, loading data for:', reportType);
+    loadReportData();
+  }, [reportType, user, isAdmin, authLoading, router, loadReportData]);
 
   // Search filter
   useEffect(() => {
