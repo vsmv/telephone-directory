@@ -92,11 +92,14 @@ export async function POST(request: NextRequest) {
     // Only admins may create contacts via API
     const user = await getUserFromRequest(request);
     if (!user || user.role !== 'admin') {
+      console.error('❌ POST /api/contacts - Auth check failed. User:', user, 'Role:', user?.role);
       return NextResponse.json({ error: 'Forbidden: Admins only' }, { status: 403 });
     }
 
     const body = await request.json();
     console.log('➕ POST /api/contacts - Creating contact:', body.name || body.email);
+    console.log('🔐 Using service role key:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+    console.log('📍 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
     
     const { data, error } = await supabase
       .from('contacts')
@@ -106,6 +109,13 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('❌ POST /api/contacts error:', error);
+      console.error('📋 Error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
+      
       // Parse duplicate key error to provide user-friendly message
       let errorMessage = error.message;
       

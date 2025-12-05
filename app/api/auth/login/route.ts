@@ -40,43 +40,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check demo user credentials (for testing only)
-    if (email === 'user@actrec.gov.in' && password === 'user123') {
-      console.log('✅ Demo user login');
-      const token = await new SignJWT({ id: 'demo-user-1', email: 'user@actrec.gov.in', role: 'regular' })
-        .setProtectedHeader({ alg: 'HS256' })
-        .setExpirationTime('24h')
-        .sign(JWT_SECRET);
-      
-      return NextResponse.json({
-        user: {
-          id: 'demo-user-1',
-          email: 'user@actrec.gov.in',
-          role: 'regular'
-        },
-        token
-      });
-    }
-
-    // Check for admin demo user
-    if (email === 'jeyarish.venki@gmail.com' && password === 'Welcome123$') {
-      console.log('✅ Admin demo user login');
-      const token = await new SignJWT({ id: 'admin-demo-1', email: 'jeyarish.venki@gmail.com', role: 'admin' })
-        .setProtectedHeader({ alg: 'HS256' })
-        .setExpirationTime('24h')
-        .sign(JWT_SECRET);
-      
-      return NextResponse.json({
-        user: {
-          id: 'admin-demo-1',
-          email: 'jeyarish.venki@gmail.com',
-          role: 'admin'
-        },
-        token
-      });
-    }
-
-    // Check database credentials
+    // Check database credentials (no hardcoded demo users)
     console.log('🔍 Checking database for:', email);
     console.log('📝 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
     console.log('🔑 Has service role key:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);

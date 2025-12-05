@@ -397,12 +397,17 @@ export default function DashboardPage() {
     category: ""
   });
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated, or to home if not admin
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/auth/login');
+    if (!authLoading) {
+      if (!user) {
+        router.push('/auth/login');
+      } else if (!isAdmin) {
+        console.warn('⚠️ Non-admin user attempted to access admin dashboard:', user.email);
+        router.push('/home');
+      }
     }
-  }, [user, authLoading, router]);
+  }, [user, isAdmin, authLoading, router]);
 
   const loadContacts = useCallback(async () => {
     setLoading(true);

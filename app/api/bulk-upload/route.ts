@@ -1,6 +1,7 @@
 // Bulk Upload API - Updated to match database schema
 import { createClient } from '@supabase/supabase-js';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { jwtVerify } from 'jose';
 import { customAlphabet } from 'nanoid';
 
 // Initialize Supabase admin client with service role key
@@ -13,6 +14,34 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
   }
 });
 
+// Secret for JWT verification (must match login route)
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+);
+
+// Helper to get user from JWT token
+async function getUserFromRequest(request: NextRequest) {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return null;
+  }
+  
+  const token = authHeader.substring(7);
+  
+  try {
+    // Verify JWT token
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    return {
+      id: payload.id as string,
+      email: payload.email as string,
+      role: payload.role as 'admin' | 'regular'
+    };
+  } catch (error) {
+    console.error('JWT verification failed:', error);
+    return null;
+  }
+}
+
 // Function to generate a random password
 const generatePassword = () => {
   const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*';
@@ -20,9 +49,16 @@ const generatePassword = () => {
   return nanoid() + 'A1!'; // Ensure it meets password requirements
 };
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    console.log('📦 BULK UPLOAD API: Starting upload...');
+    // Only admins may upload contacts in bulk
+    const user = await getUserFromRequest(request);
+    if (!user || user.role !== 'admin') {
+      console.error('❌ BULK UPLOAD - Auth check failed. User:', user, 'Role:', user?.role);
+      return NextResponse.json({ error: 'Forbidden: Admins only' }, { status: 403 });
+    }
+
+    console.log('📦 BULK UPLOAD API: Starting upload from admin:', user.email);
     const contacts = await request.json();
     console.log(`📋 Processing ${contacts.length} contacts`);
 

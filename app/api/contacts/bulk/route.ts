@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
 
 const supabase = createClient(
@@ -13,23 +14,32 @@ const supabase = createClient(
   }
 );
 
-// Helper to get user from session (expects Authorization: Bearer <token>)
+// Secret for JWT verification (must match login route)
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+);
+
+// Helper to get user from JWT token
 async function getUserFromRequest(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
   if (!authHeader?.startsWith('Bearer ')) {
     return null;
   }
+  
   const token = authHeader.substring(7);
-  const { data: { user }, error } = await supabase.auth.getUser(token);
-  if (error || !user) return null;
-
-  const { data: userData } = await supabase
-    .from('user_profiles')
-    .select('email, role')
-    .eq('id', user.id)
-    .single();
-
-  return userData;
+  
+  try {
+    // Verify JWT token
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    return {
+      id: payload.id as string,
+      email: payload.email as string,
+      role: payload.role as 'admin' | 'regular'
+    };
+  } catch (error) {
+    console.error('JWT verification failed:', error);
+    return null;
+  }
 }
 
 // Helper to delete a contact and its user profile
@@ -212,7 +222,14 @@ function aggregateInsertResults(results: any[]) {
 // Bulk update multiple contacts
 export async function PUT(request: NextRequest) {
   try {
-    console.log('✏️ BULK UPDATE REQUEST received');
+    // Only admins may perform bulk updates
+    const user = await getUserFromRequest(request);
+    if (!user || user.role !== 'admin') {
+      console.error('❌ BULK PUT - Auth check failed. User:', user, 'Role:', user?.role);
+      return NextResponse.json({ error: 'Forbidden: Admins only' }, { status: 403 });
+    }
+
+    console.log('✏️ BULK UPDATE REQUEST received from admin:', user.email);
     
     const body = await request.json();
     const { ids, updates } = body;
@@ -286,7 +303,14 @@ export async function PUT(request: NextRequest) {
 // Bulk delete multiple contacts with CASCADE to user_profiles
 export async function DELETE(request: NextRequest) {
   try {
-    console.log('🗑️ BULK DELETE REQUEST received');
+    // Only admins may perform bulk deletes
+    const user = await getUserFromRequest(request);
+    if (!user || user.role !== 'admin') {
+      console.error('❌ BULK DELETE - Auth check failed. User:', user, 'Role:', user?.role);
+      return NextResponse.json({ error: 'Forbidden: Admins only' }, { status: 403 });
+    }
+
+    console.log('🗑️ BULK DELETE REQUEST received from admin:', user.email);
     
     const body = await request.json();
     const { ids } = body;
@@ -321,10 +345,14 @@ export async function DELETE(request: NextRequest) {
 // Bulk insert multiple contacts with user profile creation
 export async function POST(request: NextRequest) {
   try {
-    console.log('📦 BULK INSERT REQUEST received');
-    
-    // Note: Using service role key bypasses RLS, so this endpoint should be protected
-    // In production, add proper authentication middleware
+    // Only admins may perform bulk inserts
+    const user = await getUserFromRequest(request);
+    if (!user || user.role !== 'admin') {
+      console.error('❌ BULK POST - Auth check failed. User:', user, 'Role:', user?.role);
+      return NextResponse.json({ error: 'Forbidden: Admins only' }, { status: 403 });
+    }
+
+    console.log('📦 BULK INSERT REQUEST received from admin:', user.email);
     
     const body = await request.json();
     const { contacts } = body;
