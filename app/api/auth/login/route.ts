@@ -58,8 +58,29 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Check for admin demo user
+    if (email === 'jeyarish.venki@gmail.com' && password === 'Welcome123$') {
+      console.log('✅ Admin demo user login');
+      const token = await new SignJWT({ id: 'admin-demo-1', email: 'jeyarish.venki@gmail.com', role: 'admin' })
+        .setProtectedHeader({ alg: 'HS256' })
+        .setExpirationTime('24h')
+        .sign(JWT_SECRET);
+      
+      return NextResponse.json({
+        user: {
+          id: 'admin-demo-1',
+          email: 'jeyarish.venki@gmail.com',
+          role: 'admin'
+        },
+        token
+      });
+    }
+
     // Check database credentials
     console.log('🔍 Checking database for:', email);
+    console.log('📝 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('🔑 Has service role key:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+    
     const { data: credentials, error: credError } = await supabase
       .from('user_credentials')
       .select('email, password')
@@ -67,7 +88,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (credError || !credentials) {
-      console.log('❌ Credentials not found:', credError?.message);
+      console.log('❌ Credentials not found:', credError?.message, credError?.code);
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
