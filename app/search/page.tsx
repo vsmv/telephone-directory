@@ -252,7 +252,7 @@ export default function SearchPage() {
               {/* Back to Home button for all users (public and logged-in) */}
               <Button 
                 variant="outline"
-                onClick={() => router.push('/')}
+                onClick={() => isLoggedIn ? router.push('/home') : router.push('/')}
                 className="bg-white/90 hover:bg-white border-white/50 text-indigo-700 hover:text-indigo-800 shadow-md"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
