@@ -66,17 +66,20 @@ function authorizeUpdateForUser(user: any, existingContact: any, updates: any) {
 
 export async function GET(request: NextRequest) {
   try {
+    // Use service role for read access (bypass RLS for public viewing)
     const { data, error } = await supabase
       .from('contacts')
       .select('*')
       .order('created_at', { ascending: false });
 
     if (error) {
+      console.error('❌ GET /api/contacts error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ data }, { status: 200 });
   } catch (error) {
+    console.error('❌ GET /api/contacts catch error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -93,6 +96,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log('➕ POST /api/contacts - Creating contact:', body.name || body.email);
     
     const { data, error } = await supabase
       .from('contacts')
@@ -101,6 +105,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
+      console.error('❌ POST /api/contacts error:', error);
       // Parse duplicate key error to provide user-friendly message
       let errorMessage = error.message;
       
@@ -114,13 +119,18 @@ export async function POST(request: NextRequest) {
         } else {
           errorMessage = 'A contact with duplicate information already exists. Please check extension, email, or phone number.';
         }
+      } else if (error.message.includes('row-level security')) {
+        errorMessage = 'Database access denied. Please check your permissions. Contact system administrator.';
+        console.error('🔒 RLS Policy Error - User role:', user.role, 'Error:', error);
       }
       
       return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 
+    console.log('✅ POST /api/contacts - Contact created:', data?.id);
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
+    console.error('❌ POST /api/contacts catch error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
