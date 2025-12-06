@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { userService } from './database';
+import { createClient } from '@supabase/supabase-js';
 
 export interface UserSession {
   id: string;
@@ -58,13 +58,19 @@ class AuthService {
   private currentUser: UserSession | null = null;
   private authToken: string | null = null;
 
+  // Create admin client for database operations
+  private supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
   getAuthToken(): string | null {
     if (this.authToken) {
       return this.authToken;
     }
     // Try to get from localStorage
     if (typeof window !== 'undefined') {
-      this.authToken = localStorage.getItem('authToken');
+      this.authToken = localStorage.getItem('supabase.auth.token');
       return this.authToken;
     }
     return null;
@@ -75,15 +81,34 @@ class AuthService {
       return this.currentUser;
     }
 
-    // In a real app, this would check Supabase auth
-    // For demo, we'll simulate based on localStorage only
-    const mockUser = localStorage?.getItem('mockUser');
-    if (mockUser) {
-      this.currentUser = JSON.parse(mockUser);
+    // Check Supabase session
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session?.user) {
+      // Get user profile from database
+      const { data: profile } = await this.supabaseAdmin
+        .from('user_profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profile) {
+        this.currentUser = {
+          id: profile.id,
+          email: profile.email,
+          role: profile.role
+        };
+        return this.currentUser;
+      }
+    }
+
+    // Fallback to localStorage for backward compatibility
+    const storedUser = localStorage?.getItem('mockUser');
+    if (storedUser) {
+      this.currentUser = JSON.parse(storedUser);
       return this.currentUser;
     }
 
-    // Return null if no user is logged in
     return null;
   }
 
@@ -109,7 +134,7 @@ class AuthService {
       if (typeof window !== 'undefined') {
         localStorage.setItem('mockUser', JSON.stringify(this.currentUser));
         if (this.authToken) {
-          localStorage.setItem('authToken', this.authToken);
+          localStorage.setItem('supabase.auth.token', this.authToken);
         }
       }
 
@@ -121,17 +146,28 @@ class AuthService {
   }
 
   async logout(): Promise<void> {
+    // Sign out from Supabase
+    await supabase.auth.signOut();
+    
     this.currentUser = null;
     this.authToken = null;
+    
     if (typeof window !== 'undefined') {
       localStorage.removeItem('mockUser');
-      localStorage.removeItem('authToken');
+      localStorage.removeItem('supabase.auth.token');
     }
   }
 
   async switchRole(newRole: 'admin' | 'regular'): Promise<void> {
     if (this.currentUser) {
+      // Update role in database
+      await this.supabaseAdmin
+        .from('user_profiles')
+        .update({ role: newRole })
+        .eq('id', this.currentUser.id);
+
       this.currentUser.role = newRole;
+      
       if (typeof window !== 'undefined') {
         localStorage.setItem('mockUser', JSON.stringify(this.currentUser));
       }
@@ -145,6 +181,47 @@ class AuthService {
   hasPermission(permission: keyof RolePermissions, userRole?: 'admin' | 'regular'): boolean {
     const role = userRole || this.currentUser?.role || 'regular';
     return this.getPermissions(role)[permission];
+  }
+
+  // New method to register users
+  async register(email: string, password: string, role: 'admin' | 'regular' = 'regular'): Promise<{ user: UserSession | null; error: string | null }> {
+    try {
+      // Sign up user in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (authError || !authData.user) {
+        return { user: null, error: authError?.message || 'Registration failed' };
+      }
+
+      // Create user profile
+      const { data: profile, error: profileError } = await this.supabaseAdmin
+        .from('user_profiles')
+        .insert({
+          id: authData.user.id,
+          email: authData.user.email!,
+          role
+        })
+        .select()
+        .single();
+
+      if (profileError || !profile) {
+        return { user: null, error: 'Failed to create user profile' };
+      }
+
+      const userSession: UserSession = {
+        id: profile.id,
+        email: profile.email,
+        role: profile.role
+      };
+
+      return { user: userSession, error: null };
+    } catch (error) {
+      console.error('Registration error:', error);
+      return { user: null, error: 'An error occurred during registration' };
+    }
   }
 }
 

@@ -42,19 +42,6 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 CREATE INDEX IF NOT EXISTS idx_user_profiles_email ON user_profiles(email);
 CREATE INDEX IF NOT EXISTS idx_user_profiles_role ON user_profiles(role);
 
--- =====================================================
--- USER CREDENTIALS TABLE
--- =====================================================
-CREATE TABLE IF NOT EXISTS user_credentials (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Add indexes
-CREATE INDEX IF NOT EXISTS idx_user_credentials_email ON user_credentials(email);
 
 -- =====================================================
 -- LEARNING PLANS TABLE
@@ -113,7 +100,6 @@ $$ language 'plpgsql';
 -- Apply triggers to all tables
 CREATE TRIGGER update_contacts_updated_at BEFORE UPDATE ON contacts FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_user_profiles_updated_at BEFORE UPDATE ON user_profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_user_credentials_updated_at BEFORE UPDATE ON user_credentials FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_learning_plans_updated_at BEFORE UPDATE ON learning_plans FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_patentable_ideas_updated_at BEFORE UPDATE ON patentable_ideas FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -124,7 +110,7 @@ CREATE TRIGGER update_patentable_ideas_updated_at BEFORE UPDATE ON patentable_id
 -- Enable RLS on all tables
 ALTER TABLE contacts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_credentials ENABLE ROW LEVEL SECURITY;
+
 ALTER TABLE learning_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE patentable_ideas ENABLE ROW LEVEL SECURITY;
 
@@ -140,11 +126,7 @@ CREATE POLICY "Admins can insert user_profiles" ON user_profiles FOR INSERT TO a
 CREATE POLICY "Admins can update user_profiles" ON user_profiles FOR UPDATE TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role = 'admin'));
 CREATE POLICY "Admins can delete user_profiles" ON user_profiles FOR DELETE TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role = 'admin'));
 
--- User credentials policies (admin only)
-CREATE POLICY "Admins can view user_credentials" ON user_credentials FOR SELECT TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role = 'admin'));
-CREATE POLICY "Admins can insert user_credentials" ON user_credentials FOR INSERT TO authenticated WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role = 'admin'));
-CREATE POLICY "Admins can update user_credentials" ON user_credentials FOR UPDATE TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role = 'admin'));
-CREATE POLICY "Admins can delete user_credentials" ON user_credentials FOR DELETE TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role = 'admin'));
+
 
 -- Learning plans policies (accessible to authenticated users)
 CREATE POLICY "Authenticated users can view learning_plans" ON learning_plans FOR SELECT TO authenticated USING (true);
@@ -164,7 +146,7 @@ CREATE POLICY "Admins can delete patentable_ideas" ON patentable_ideas FOR DELET
 
 -- Insert sample admin user
 INSERT INTO user_profiles (email, role) VALUES ('admin@actrec.gov.in', 'admin') ON CONFLICT (email) DO NOTHING;
-INSERT INTO user_credentials (email, password_hash) VALUES ('admin@actrec.gov.in', '$2b$10$example_hash_for_admin_password') ON CONFLICT (email) DO NOTHING;
+
 
 -- Insert sample contacts
 INSERT INTO contacts (name, email, phone, department, designation, location, extension, mobile) VALUES 
@@ -176,6 +158,6 @@ ON CONFLICT (email) DO NOTHING;
 -- Comments for documentation
 COMMENT ON TABLE contacts IS 'Employee contact directory for ACTREC';
 COMMENT ON TABLE user_profiles IS 'User profiles with role-based access control';
-COMMENT ON TABLE user_credentials IS 'User authentication credentials';
+
 COMMENT ON TABLE learning_plans IS 'Employee learning and development plans';
 COMMENT ON TABLE patentable_ideas IS 'Research ideas and patent submissions';

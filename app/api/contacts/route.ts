@@ -2,9 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { jwtVerify } from 'jose';
 
+// Use service role key if available, otherwise fall back to anon key (TEMPORARY FIX)
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.warn('⚠️ WARNING: SUPABASE_SERVICE_ROLE_KEY not configured!');
+  console.warn('⚠️ Using anon key as fallback. This may cause RLS policy errors.');
+  console.warn('⚠️ Add SUPABASE_SERVICE_ROLE_KEY to .env.local for proper functionality.');
+}
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  supabaseKey,
   {
     auth: {
       autoRefreshToken: false,
@@ -129,9 +138,10 @@ export async function POST(request: NextRequest) {
         } else {
           errorMessage = 'A contact with duplicate information already exists. Please check extension, email, or phone number.';
         }
-      } else if (error.message.includes('row-level security')) {
-        errorMessage = 'Database access denied. Please check your permissions. Contact system administrator.';
-        console.error('🔒 RLS Policy Error - User role:', user.role, 'Error:', error);
+      } else if (error.message.includes('row-level security') || error.message.includes('permission denied')) {
+        errorMessage = 'Database access denied. SUPABASE_SERVICE_ROLE_KEY is required. Please add it to .env.local and restart the server.';
+        console.error('🔒 RLS Policy Error - Service role key missing! User role:', user.role);
+        console.error('🔒 Add SUPABASE_SERVICE_ROLE_KEY to .env.local to fix this.');
       }
       
       return NextResponse.json({ error: errorMessage }, { status: 500 });

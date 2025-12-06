@@ -127,12 +127,16 @@ export default function LoginPage() {
 
             <div className="mt-8 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-lg p-4 border-2 border-blue-100">
               <div className="text-center text-sm text-gray-700">
-                <p className="font-semibold mb-3 text-base text-gray-800">Demo Credentials:</p>
+                <p className="font-semibold mb-3 text-base text-gray-800">Available Test Users:</p>
                 <div className="space-y-2">
                   <div className="bg-white rounded-md p-2 border border-purple-200">
-                    <p><span className="font-semibold text-purple-700">Test User:</span> <span className="text-gray-600">user@actrec.gov.in</span> / <span className="font-mono text-gray-800">user123</span></p>
+                    <p><span className="font-semibold text-purple-700">Admin:</span> <span className="text-gray-600">jeyarish.venki@gmail.com</span> / <span className="font-mono text-gray-800">(contact admin for password)</span></p>
+                  </div>
+                  <div className="bg-white rounded-md p-2 border border-blue-200">
+                    <p><span className="font-semibold text-blue-700">Regular:</span> <span className="text-gray-600">demo.test@actrec.gov.in</span> / <span className="font-mono text-gray-800">(contact admin for password)</span></p>
                   </div>
                 </div>
+                <p className="text-xs text-gray-500 mt-3">Note: This is a demo system. Contact administrator for login credentials.</p>
               </div>
             </div>
           </CardContent>

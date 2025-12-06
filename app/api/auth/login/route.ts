@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { SignJWT } from 'jose';
 
+// Create Supabase client for authentication
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// Secret for JWT signing (in production, use environment variable)
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+// Create Supabase admin client for database operations
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export async function POST(request: NextRequest) {
@@ -17,101 +18,95 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     let { email, password } = body;
 
-    // Normalize email to lowercase for case-insensitive matching
-    if (email) {
-      email = email.toLowerCase().trim();
-    }
-
-    console.log('🔐 LOGIN ATTEMPT - RAW BODY:', JSON.stringify(body));
-    console.log('🔐 LOGIN ATTEMPT:', { 
-      email, 
-      emailType: typeof email,
-      emailLength: email?.length,
-      password: password?.substring(0, 3) + '***',
-      passwordLength: password?.length,
-      passwordType: typeof password
-    });
+    console.log('🔐 SUPABASE AUTH LOGIN ATTEMPT:', { email, passwordLength: password?.length });
 
     if (!email || !password) {
-      console.log('❌ Missing credentials');
       return NextResponse.json(
         { error: 'Email and password are required' },
         { status: 400 }
       );
     }
 
-    // Check database credentials (no hardcoded demo users)
-    console.log('🔍 Checking database for:', email);
-    console.log('📝 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-    console.log('🔑 Has service role key:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
-    
-    const { data: credentials, error: credError } = await supabase
-      .from('user_credentials')
-      .select('email, password')
-      .eq('email', email)
-      .single();
+    email = email.toLowerCase().trim();
 
-    if (credError || !credentials) {
-      console.log('❌ Credentials not found:', credError?.message, credError?.code);
-      return NextResponse.json(
-        { error: 'Invalid email or password' },
-        { status: 401 }
-      );
-    }
+    // Authenticate using Supabase Auth
+    console.log('🔑 Authenticating with Supabase Auth...');
     
-    console.log('✅ Credentials found for:', credentials.email);
-
-    // Check password match
-    console.log('🔑 Password check:', { 
-      provided: password.substring(0, 3) + '***',
-      stored: credentials.password?.substring(0, 3) + '***',
-      match: credentials.password === password 
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
-    
-    if (credentials.password !== password) {
-      console.log('❌ Password mismatch');
+
+    console.log('🔍 Supabase Auth result:', { 
+      hasUser: !!authData.user, 
+      hasError: !!authError,
+      errorMessage: authError?.message,
+      userEmail: authData.user?.email 
+    });
+
+    if (authError || !authData.user) {
+      console.log('❌ Supabase Auth failed:', authError?.message);
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
       );
     }
 
-    // Get user profile for role information
-    console.log('👤 Fetching user profile...');
-    const { data: profile, error: profileError } = await supabase
+    console.log('✅ Supabase Auth successful, fetching profile...');
+
+    // Get user profile from user_profiles table
+    let profile;
+    const { data: profileData, error: profileError } = await supabaseAdmin
       .from('user_profiles')
-      .select('id, email, role')
-      .eq('email', email)
+      .select('*')
+      .eq('id', authData.user.id)
       .single();
 
-    if (profileError || !profile) {
-      console.log('❌ Profile not found:', profileError?.message);
-      return NextResponse.json(
-        { error: 'User profile not found' },
-        { status: 404 }
-      );
+    if (profileError || !profileData) {
+      console.log('❌ Profile not found, creating one...');
+      
+      // Create profile if it doesn't exist
+      const { data: newProfile, error: createError } = await supabaseAdmin
+        .from('user_profiles')
+        .insert({
+          id: authData.user.id,
+          email: authData.user.email!,
+          role: 'regular' // Default role
+        })
+        .select()
+        .single();
+
+      if (createError || !newProfile) {
+        console.log('❌ Failed to create profile:', createError?.message);
+        return NextResponse.json(
+          { error: 'Failed to create user profile' },
+          { status: 500 }
+        );
+      }
+
+      console.log('✅ Profile created successfully');
+      profile = newProfile;
+    } else {
+      profile = profileData;
     }
 
     console.log('✅ LOGIN SUCCESS:', { email: profile.email, role: profile.role });
-    
-    // Generate JWT token
-    const token = await new SignJWT({ id: profile.id, email: profile.email, role: profile.role })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setExpirationTime('24h')
-      .sign(JWT_SECRET);
-    
+
+    // Return user data and Supabase session
     return NextResponse.json({
       user: {
         id: profile.id,
         email: profile.email,
         role: profile.role
       },
-      token
+      session: authData.session,
+      token: authData.session?.access_token
     });
-  } catch (error) {
-    console.error('Login error:', error);
+
+  } catch (error: any) {
+    console.error('💥 Login error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error.message },
       { status: 500 }
     );
   }

@@ -78,19 +78,6 @@ USING (
     )
 );
 
--- =====================================================
--- USER_CREDENTIALS TABLE RLS POLICIES
--- =====================================================
-
--- Service role ONLY (credentials should never be exposed to clients)
-CREATE POLICY "service_role_full_access_user_credentials"
-ON user_credentials
-FOR ALL
-TO service_role
-USING (true)
-WITH CHECK (true);
-
--- No other policies - credentials are managed via API only
 
 -- =====================================================
 -- LEARNING_PLANS TABLE RLS POLICIES

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -70,7 +70,7 @@ export function SimpleLearningPlans({ userEmail, userRole = 'regular' }: SimpleL
   });
 
   // Direct fetch - no auth token needed for GET (RLS handles security)
-  const loadPlans = async () => {
+  const loadPlans = useCallback(async () => {
     console.log('🔄 Loading learning plans...');
     setLoading(true);
     
@@ -111,12 +111,12 @@ export function SimpleLearningPlans({ userEmail, userRole = 'regular' }: SimpleL
     } finally {
       setLoading(false);
     }
-  };
+  }, [userEmail, toast]);
 
   // Load on mount
   useEffect(() => {
     loadPlans();
-  }, []);
+  }, [loadPlans]);
 
   const handleAddPlan = async () => {
     if (!newPlan.title.trim()) {
